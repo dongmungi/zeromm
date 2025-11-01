@@ -1,923 +1,251 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <title>ZEROMM</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    :root{
-      --bg:#0f0f0f;
-      --bg-elev:#181818;
-      --panel:#121212;
-      --panel-2:#1b1b1b;
-      --text:#fff;
-      --muted:#b3b3b3;
-      --brand:#1DB954;
-      --card:#232a36;
-      --player-h:84px;
-      --sidebar-w:250px;
-      --radius:14px;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;
-      font-family:system-ui, -apple-system, 'Noto Sans KR', Arial, sans-serif;
-      background:var(--bg);
-      color:var(--text);
-      overflow:hidden; /* 가사 오버레이 등 레이아웃 고정 */
-    }
-
-
-
-    /* ===== 레이아웃 ===== */
-    .app{
-      height:100%;
-      display:grid;
-      grid-template-columns: var(--sidebar-w) 1fr;
-      grid-template-rows: 1fr var(--player-h);
-      grid-template-areas:
-        "sidebar main"
-        "player  player";
-    }
-
-
-    /* ===== 사이드바 ===== */
-    .sidebar{
-      grid-area:sidebar;
-      background:linear-gradient(180deg, #0f0f0f 0%, #121212 100%);
-      border-right:1px solid #000;
-      padding:18px 14px 14px;
-      overflow:auto;
-    }
-    .logo{
-      display:flex; align-items:center; gap:10px;
-      padding:8px 6px 16px;
-      font-weight:800; letter-spacing:.5px;
-      font-size:20px;
-    }
-    .logo .dot{width:20px;height:20px;border-radius:50%;background:var(--brand)}
-    .side-section-title{
-      font-size:12px; color:var(--muted); margin:18px 8px 8px;
-      text-transform:uppercase; letter-spacing:.8px;
-    }
-    .nav{
-      display:flex; flex-direction:column; gap:6px; padding:0 6px;
-    }
-    .nav a{
-      padding:10px 12px; border-radius:10px; color:#ddd; text-decoration:none;
-      display:flex; align-items:center; gap:10px;
-    }
-    .nav a:hover, .nav a.active{ background:#1a1a1a; color:#fff; }
-
-    .install-app{
-      margin-top:14px;
-      background:#151515; border:1px solid #202020;
-      border-radius:12px; padding:12px;
-    }
-    .install-app .title{font-weight:700;margin-bottom:8px}
-    .upload-wrap{
-      display:flex; flex-direction:column; gap:8px;
-      background:#0f0f0f; border:1px dashed #2b2b2b; padding:10px; border-radius:10px;
-    }
-    .folderInput{
-      appearance:none; border:none; border-radius:100px; padding:10px 12px;
-      background:var(--brand); color:#111; font-weight:800; cursor:pointer; text-align:center;
-    }
-    .searchInput{
-      width:100%;
-      background:#1a1a1a; border:1px solid #262626; color:#fff;
-      padding:10px 12px; border-radius:100px; outline:none;
-    }
-
-    /* ===== 메인 ===== */
-.main {
-  grid-area: main;
-  overflow-y: auto;
-  padding: 18px 24px 120px 24px;
-
-  background: linear-gradient(
-      to bottom,
-      rgba(29,185,84,0.6) 0px,    /* 진한 초록 */
-      rgba(29,185,84,0.4) 30px,  /* 살짝 옅어짐 */
-      rgba(29,185,84,0.25) 60px,
-      rgba(29,185,84,0.15) 90px,
-      rgba(29,185,84,0.08) 120px,
-      rgba(29,185,84,0.03) 150px,
-      rgba(29,185,84,0) 180px     /* 완전 투명 */
-    ),
-    var(--panel);
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZeroMM Player</title>
+<style>
+body {
+  font-family: 'BMJUA', sans-serif;
+  background: #111;
+  color: #fff;
+  text-align: center;
+  margin: 0;
+  padding: 20px;
 }
-
-
-
-    .top-tabs{
-      display:flex; gap:18px; align-items:center; margin:4px 0 16px;
-      position:sticky; top:0; background:transparent; backdrop-filter:blur(6px);
-      z-index:5;
-    }
-    .tabBtn{
-      border:none; background:#212121; color:#fff; padding:10px 18px; border-radius:999px;
-      cursor:pointer; font-weight:700; letter-spacing:.2px;
-    }
-    .tabBtn.active{ background:var(--brand); color:#111; }
-    .section-title{ font-size:24px; font-weight:800; margin:10px 0 10px 2px; }
-
-    /* 카드 그리드 */
-    .card-grid{
-      display:grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap:18px;
-    }
-    .card{
-      background:#181a20; border-radius:16px; padding:12px;
-      transition:transform .18s ease, background .18s ease, box-shadow .18s ease;
-      cursor:pointer;
-    }
-    .card:hover{ transform:translateY(-4px); background:#1e2230; box-shadow:0 12px 26px #0006; }
-    .thumb{
-      position:relative; border-radius:12px; overflow:hidden; background:#222; aspect-ratio:1/1;
-      display:block;
-    }
-    .thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
-    /* hover play 버튼 */
-    .hover-play{
-      position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-      opacity:0; transition:opacity .2s ease;
-      background:linear-gradient(180deg, transparent 50%, rgba(0,0,0,.35) 100%);
-    }
-    .card:hover .hover-play{ opacity:1; }
-    .play-circle{
-      width:54px; height:54px; border-radius:50%; background:var(--brand); color:#111; 
-      display:flex; align-items:center; justify-content:center; font-weight:800; font-size:20px;
-      box-shadow:0 6px 18px rgba(29,185,84,.45);
-    }
-
-    .card-title{ font-weight:800; margin:10px 2px 4px; font-size:15px; }
-    .card-sub{ color:var(--brand); font-size:13px; margin:0 2px 2px; }
-
-    /* ===== 하단 플레이어 ===== */
-    .player{
-      grid-area:player; background:#181a1f; border-top:1px solid #000; 
-      display:grid; grid-template-columns: var(--sidebar-w) 1fr var(--sidebar-w);
-      align-items:center; padding:8px 14px; gap:8px;
-    }
-    .p-info{display:flex; align-items:center; gap:12px; min-width:0;}
-    #coverImg{ width:56px; height:56px; border-radius:10px; object-fit:cover; background:#222;}
-    .title-wrap{min-width:0}
-    .p-title{font-weight:800; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-    .p-artist{color:var(--brand); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-
-    .p-center{ display:flex; flex-direction:column; align-items:center; gap:6px;}
-    .p-ctrls{ display:flex; gap:10px; align-items:center;}
-    .p-ctrls button{
-      border:none; border-radius:999px; padding:8px 10px; background:#2a2a2a; color:#fff; cursor:pointer; font-weight:700;
-    }
-    .p-ctrls button.primary{ background:var(--brand); color:#111; font-weight:900; }
-    .progress-wrap{ display:flex; align-items:center; gap:10px; width:100%; max-width:680px; }
-    #progressContainer{flex:1; height:6px; background:#333; border-radius:999px; cursor:pointer;}
-    #progress{height:100%; width:0%; background:var(--brand); border-radius:999px; transition:width .2s;}
-    #timeDisplay{color:#aaa; font-size:12px; min-width:86px; display:flex; justify-content:space-between; gap:8px;}
-
-    .p-right{ display:flex; align-items:center; gap:12px; justify-self:end;}
-    #volumeControl{ width:110px; }
-    /* 가사 버튼은 오른쪽 쪽 */
-    .lyrics-toggle{
-      border:none; background:#2a2a2a; color:#fff; padding:10px 12px; border-radius:999px; cursor:pointer; font-weight:800;
-    }
-
-    /* ===== 가사 오버레이 (사이드바/플레이어 제외) ===== */
-    .lyrics-overlay{
-      position:fixed;
-      left:var(--sidebar-w); right:0;
-      top:0; bottom:var(--player-h);
-      background:rgba(20,22,28,.96);
-      border-left:1px solid #0b0b0b;
-      z-index:50;
-      display:none;
-    }
-    .lyrics-overlay.show{display:block; animation:fadeIn .25s ease}
-    @keyframes fadeIn{ from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:translateY(0)} }
-    .lyrics-head{
-      position:absolute; right:12px; top:10px; display:flex; gap:8px;
-    }
-    .lyrics-close{
-      border:none; background:#2a2a2a; color:#fff; padding:10px 12px; border-radius:10px; cursor:pointer; font-weight:800;
-    }
-    .lyrics-area{
-      position:absolute; inset:64px 22px 64px 22px;
-      overflow:auto; padding:6px 8px;
-    }
-    .lyrics-line{
-      opacity:.6; color:#fff; font-size:20px; margin:8px 0; transition:.2s;
-    }
-    .lyrics-line.active{
-      color:var(--brand); opacity:1; font-weight:900; background:#1a1f2b; padding:2px 8px; border-radius:8px;
-    }
-    .lyrics-foot{
-      position:absolute; right:18px; bottom:18px; display:flex; gap:8px; align-items:center;
-    }
-    .instrumental-btn{
-      border:none; background:var(--brand); color:#111; font-weight:900; padding:12px 16px; border-radius:999px; cursor:pointer;
-      box-shadow:0 10px 24px rgba(29,185,84,.35);
-    }
-    .lyrics-empty{
-      color:#bbb; font-size:18px; text-align:center; margin-top:40px;
-    }
-
-    /* 스크롤바 살짝 */
-    ::-webkit-scrollbar{height:8px;width:8px}
-    ::-webkit-scrollbar-thumb{background:#2b2b2b;border-radius:999px}
-    ::-webkit-scrollbar-track{background:transparent}
-    @media (max-width:920px){
-      :root{ --sidebar-w:72px; }
-      .logo span{display:none}
-      .nav a span{display:none}
-      .player{ grid-template-columns: var(--sidebar-w) 1fr 180px; }
-      .p-right{gap:8px}
-      #volumeControl{ width:80px;}
-    }
-  </style>
+.song-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+}
+.song-card {
+  width: 180px;
+  background: #222;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 0 8px rgba(255,255,255,0.1);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.song-card:hover { transform: scale(1.05); }
+.song-card img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+.song-card h3 {
+  margin: 10px 0 5px;
+  font-size: 18px;
+}
+#player-area {
+  margin-top: 30px;
+}
+#lyrics {
+  margin-top: 20px;
+  max-height: 200px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  text-align: left;
+  padding: 10px;
+  background: #1c1c1c;
+  border-radius: 10px;
+}
+.lyric-line.active { color: #00ffff; font-weight: bold; }
+#info-area img {
+  width: 150px;
+  height: 150px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+#info-area {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin-top: 20px;
+}
+#info-area div {
+  width: 200px;
+}
+button {
+  background: #333;
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+button:hover { background: #555; }
+</style>
 </head>
 <body>
-  <div class="app">
-    <!-- ===== 사이드바 ===== -->
-    <aside class="sidebar">
-      <div class="logo"><div class="dot"></div><span>ZEROMM</span></div>
 
-      <div class="side-section-title">Menu</div>
-      <nav class="nav">
-        <a href="javascript:void(0)" class="active" id="tabSongs"><span>전체곡</span></a>
-        <a href="javascript:void(0)" id="tabArtists"><span>아티스트</span></a>
-        <a href="javascript:void(0)" id="tabAlbums"><span>앨범</span></a>
-        <a href="javascript:void(0)" id="tabPlaylist"><span>플레이리스트</span></a>
-      </nav>
+<h1>🎵 ZeroMM Music Player</h1>
+<div id="status">로딩 중...</div>
+<div class="song-list" id="songList"></div>
 
-      <div class="side-section-title">Data Upload</div>
-      <div class="install-app">
-        <div class="title">로컬 음악 불러오기</div>
-        <div class="upload-wrap">
-          <input type="file" id="folderInput" class="folderInput" webkitdirectory directory multiple value="">
-          <input type="text" id="searchInput" class="searchInput" placeholder="SEARCH">
-        </div>
-      </div>
-    </aside>
+<div id="player-area">
+  <h2 id="nowPlaying">재생 중 없음</h2>
+  <audio id="player" controls preload="none"></audio><br>
+  <button id="instToggle">🎧 Instrumental OFF</button>
+</div>
 
-    <!-- ===== 메인 ===== -->
-    <main class="main">
-      <div class="top-tabs">
-        <div class="section-title" id="sectionTitle">전체곡</div>
-      </div>
-      <div id="contentArea"></div>
-    </main>
+<div id="lyrics"></div>
 
-    <!-- ===== 하단 플레이어 ===== -->
-    <footer class="player" id="playerArea">
-      <div class="p-info">
-        <img id="coverImg" src="data/program/img/music-main.png" alt="cover">
-        <div class="title-wrap">
-          <div id="musicTitle" class="p-title"></div>
-          <div id="musicArtist" class="p-artist"></div>
-        </div>
-      </div>
-
-      <div class="p-center">
-        <div class="p-ctrls">
-          <button id="shuffleBtn">⇄</button>
-          <button id="prevBtn">⏮</button>
-          <button id="playBtn" class="primary">▶</button>
-          <button id="nextBtn">⏭</button>
-          <button id="repeatBtn">◯</button>
-        </div>
-        <div class="progress-wrap">
-          <div id="progressContainer"><div id="progress"></div></div>
-          <div id="timeDisplay"><span id="currentTime">00:00</span><span id="duration">00:00</span></div>
-        </div>
-      </div>
-
-      <div class="p-right">
-        <span>🔊</span>
-        <input type="range" id="volumeControl" min="0" max="1" step="0.01" value="0.5">
-        <!-- 가사 버튼(특수기호) -->
-        <button class="lyrics-toggle" id="lyricsBtn">♪</button>
-      </div>
-
-      <audio id="player"></audio>
-      <audio id="instrumentPlayer"></audio>
-    </footer>
-
-    <!-- ===== 가사 오버레이 (사이드바/플레이어 제외) ===== -->
-    <section id="lyricsOverlay" class="lyrics-overlay" aria-hidden="true">
-      <div class="lyrics-head">
-        <button id="lyricsClose" class="lyrics-close">✕</button>
-      </div>
-      <div id="lyricsScroll" class="lyrics-area">
-        <div id="lyricsBlock" class="lyrics-block"></div>
-      </div>
-      <div class="lyrics-foot">
-        <button id="instrumentalToggle" class="instrumental-btn">Instrumental: OFF</button>
-      </div>
-    </section>
+<div id="info-area">
+  <div>
+    <h3>👩‍🎤 Artist</h3>
+    <img id="artistImg" src="" alt="">
+    <p id="artistInfo"></p>
   </div>
+  <div>
+    <h3>💿 Album</h3>
+    <img id="albumImg" src="" alt="">
+    <p id="albumInfo"></p>
+  </div>
+</div>
 
-  <script>
-    // ===== 데이터 구조 =====
-    let songs = [];         // [{title, artist, album, genre, duration, file, cover, lrc, instrument, folder, txt}]
-    let artists = {};       // {artistName: {name, info, image}}
-    let albums = {};        // {albumName: {name, info, image}}
-    let playlist = [];      // [{...song}]
-    let currentTab = 'songs';
-    let currentSong = null;
-    let currentList = [];
-    let repeatMode = 'none'; // none, one, all
-    let shuffleMode = false;
-    let instrumentOn = false; // 전역 모드
-    let lrcLines = [];
-    let lastPlayedIndex = 0;
+<script>
+const GITHUB_BASE = "https://dongmungi.github.io/zeromm/data";
+const LOCAL_BASE = "./data";
+let isOnline = false;
+let currentSong = null;
+let instrumentOn = false;
+let lrcLines = [];
 
-    // ===== DOM =====
-    const folderInput = document.getElementById('folderInput');
-    const searchInput = document.getElementById('searchInput');
-    const contentArea = document.getElementById('contentArea');
-    const sectionTitle = document.getElementById('sectionTitle');
-
-    const tabSongs = document.getElementById('tabSongs');
-    const tabArtists = document.getElementById('tabArtists');
-    const tabAlbums = document.getElementById('tabAlbums');
-    const tabPlaylist = document.getElementById('tabPlaylist');
-
-    const playerArea = document.getElementById('playerArea');
-    const coverImg = document.getElementById('coverImg');
-    const musicTitle = document.getElementById('musicTitle');
-    const musicArtist = document.getElementById('musicArtist');
-    const prevBtn = document.getElementById('prevBtn');
-    const playBtn = document.getElementById('playBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const shuffleBtn = document.getElementById('shuffleBtn');
-    const repeatBtn = document.getElementById('repeatBtn');
-
-    const player = document.getElementById('player');
-    const instrumentPlayer = document.getElementById('instrumentPlayer');
-
-    const progressContainer = document.getElementById('progressContainer');
-    const progress = document.getElementById('progress');
-    const currentTimeDisplay = document.getElementById('currentTime');
-    const durationDisplay = document.getElementById('duration');
-    const volumeControl = document.getElementById('volumeControl');
-
-    const lyricsBtn = document.getElementById('lyricsBtn');
-    const lyricsOverlay = document.getElementById('lyricsOverlay');
-    const lyricsClose = document.getElementById('lyricsClose');
-    const lyricsScroll = document.getElementById('lyricsScroll');
-    const lyricsBlock = document.getElementById('lyricsBlock');
-    const instrumentalToggle = document.getElementById('instrumentalToggle');
-
-    // ===== 파일 파싱 =====
-    folderInput.addEventListener('change', async (e) => {
-      const files = Array.from(e.target.files);
-      await parseFiles(files);
-      switchTab('songs');
-      loadPlaylist();
-      saveLastOpened();
-    });
-
-    function parseInfo(txt) {
-  const obj = {};
-  txt.split(/\r?\n/).forEach(line => {
-    const sep = line.indexOf(':');
-    if (sep === -1) return;
-    let key = line.slice(0, sep).trim();
-    let val = line.slice(sep+1).trim();
-    if (key && val && val !== 'none') {
-      if (key.toLowerCase() === "artist") {
-        obj[key] = val.split(",").map(v => v.trim()).filter(Boolean);
-      } else {
-        obj[key] = val;
-      }
-    }
-  });
-  return obj;
-}
-
-    async function parseFiles(files) {
-      songs = []; artists = {}; albums = {};
-      let covers = {}, lrcs = {}, instrs = {}, songTxts = {};
-
-      files.forEach(file => {
-        const path = file.webkitRelativePath.split('/');
-        // 곡 폴더명 추출 ( .../music/<musicname>/... )
-        let folderName = null;
-        const idxMusic = path.indexOf('music');
-        if (idxMusic !== -1 && path.length > idxMusic+1) folderName = path[idxMusic+1];
-
-        if (file.name === 'music-info.txt' && folderName) { covers[folderName] = null; }
-        if (file.name.endsWith('.png') && folderName && path[idxMusic] === 'music') {
-          covers[folderName] = URL.createObjectURL(file);
-        }
-        if (
-  folderName &&
-  (file.name.toLowerCase().endsWith('.lrc') ||
-   (file.name.toLowerCase().endsWith('.txt') && file.name !== 'music-info.txt'))
-) {
-  if (file.name.toLowerCase().endsWith('.lrc')) {
-    lrcs[folderName] = file;
-  } else {
-    songTxts[folderName] = file;
+async function checkOnline() {
+  try {
+    const res = await fetch(GITHUB_BASE + "/music/");
+    isOnline = res.ok;
+  } catch {
+    isOnline = false;
   }
 }
-        if (folderName && file.name.endsWith('.mp3') && file.name.includes('instrument')) {
-          instrs[folderName] = file;
-        }
-        if (path[1] === 'artist' && file.name.endsWith('.png')) {
-          artists[path[2]] = artists[path[2]] || {};
-          artists[path[2]].image = URL.createObjectURL(file);
-        }
-        if (path[1] === 'album' && file.name.endsWith('.png')) {
-          albums[path[2]] = albums[path[2]] || {};
-          albums[path[2]].image = URL.createObjectURL(file);
-        }
-      });
 
-      // 아티스트/앨범 info
-      await Promise.all(files.map(async file => {
-        const path = file.webkitRelativePath.split('/');
-        if (path[1] === 'artist' && file.name === 'artist-info.txt') {
-          const txt = await file.text();
-          const info = parseInfo(txt);
-          artists[path[2]] = artists[path[2]] || {};
-          Object.assign(artists[path[2]], info);
-        }
-        if (path[1] === 'album' && file.name === 'album-info.txt') {
-          const txt = await file.text();
-          const info = parseInfo(txt);
-          albums[path[2]] = albums[path[2]] || {};
-          Object.assign(albums[path[2]], info);
-        }
-      }));
-
-      // 곡 info
-      await Promise.all(files.map(async file => {
-        const path = file.webkitRelativePath.split('/');
-        if (file.name === 'music-info.txt') {
-          const idxMusic = path.indexOf('music');
-          const folder = (idxMusic !== -1 && path.length > idxMusic+1) ? path[idxMusic+1] : null;
-          if (!folder) return;
-          const txt = await file.text();
-          const info = parseInfo(txt);
-          let mp3 = files.find(f => f.webkitRelativePath.includes(`/music/${folder}/`) && f.name.endsWith('.mp3') && !f.name.includes('instrument'));
-          if (!mp3) return;
-
-console.log("Pushing song", folder, "lrc=", lrcs[folder]);
-
-songs.push({
-  ...info,
-  file: mp3,
-  cover: covers[folder] || 'data/program/img/music-main.png',
-  lrc: lrcs[folder] || null,
-  txt: songTxts[folder] || null,
-  instrument: instrs[folder] || null,
-  folder: folder
-});
-
-// LRC가 나중에 로딩될 경우 보강
-if (lrcs[folder]) {
-  songs[songs.length - 1].lrc = lrcs[folder];
-  console.log("LRC linked after push:", folder);
+async function loadData() {
+  const res = await fetch("./data.json");
+  return await res.json();
 }
-        }
-      }));
 
-      songs.forEach(song => {
-  if (Array.isArray(song.artist)) {
-    song.artist.forEach(a => {
-      if (!(a in artists)) artists[a] = {name: a, info: ''};
-    });
-  } else if (song.artist) {
-    if (!(song.artist in artists)) artists[song.artist] = {name: song.artist, info: ''};
+function getBase() {
+  return isOnline ? GITHUB_BASE : LOCAL_BASE;
+}
+
+function createSongCard(name, basePath) {
+  const card = document.createElement("div");
+  card.className = "song-card";
+  card.innerHTML = `
+    <img src="${basePath}/music/${name}/music.png" alt="${name}">
+    <h3>${name}</h3>
+  `;
+  card.addEventListener("click", () => selectSong(name));
+  return card;
+}
+
+async function selectSong(name) {
+  currentSong = name;
+  const base = getBase();
+  const audio = document.getElementById("player");
+  const nowPlaying = document.getElementById("nowPlaying");
+  const instToggle = document.getElementById("instToggle");
+  const lyricsDiv = document.getElementById("lyrics");
+
+  const infoUrl = `${base}/music/${name}/music-info.txt`;
+  const musicUrl = `${base}/music/${name}/music.mp3`;
+  const instUrl = `${base}/music/${name}/music-instrument.mp3`;
+  const lrcUrl = `${base}/music/${name}/music-lyrics.lrc`;
+
+  // 노래 정보 불러오기
+  try {
+    const infoTxt = await fetch(infoUrl).then(r=>r.text());
+    const [artistName, albumName] = infoTxt.split("\n").map(x=>x.trim());
+    loadArtistAlbum(artistName, albumName);
+  } catch { }
+
+  // 가사
+  try {
+    const txt = await fetch(lrcUrl).then(r=>r.text());
+    lrcLines = parseLRC(txt);
+    buildLyrics();
+  } catch {
+    lyricsDiv.innerHTML = "<i>가사를 불러올 수 없습니다.</i>";
   }
 
-  if (song.album && !(song.album in albums)) albums[song.album] = {name: song.album, info: ''};
-});
-    }
+  // 재생
+  audio.src = musicUrl;
+  audio.play();
+  nowPlaying.textContent = `🎶 ${name}`;
+  instToggle.onclick = () => {
+    instrumentOn = !instrumentOn;
+    instToggle.textContent = instrumentOn ? "🎧 Instrumental ON" : "🎧 Instrumental OFF";
+    audio.src = instrumentOn ? instUrl : musicUrl;
+    audio.play();
+  };
 
-    // ===== 탭 전환 =====
-    tabSongs.addEventListener('click', ()=>switchTab('songs'));
-    tabArtists.addEventListener('click', ()=>switchTab('artists'));
-    tabAlbums.addEventListener('click', ()=>switchTab('albums'));
-    tabPlaylist.addEventListener('click', ()=>switchTab('playlist'));
+  audio.ontimeupdate = () => syncLyrics(audio.currentTime);
+}
 
-    function switchTab(tab){
-      [tabSongs, tabArtists, tabAlbums, tabPlaylist].forEach(a=>a.classList.remove('active'));
-      if(tab==='songs'){ tabSongs.classList.add('active'); sectionTitle.textContent='전체곡'; renderSongList(songs); }
-      if(tab==='artists'){ tabArtists.classList.add('active'); sectionTitle.textContent='아티스트'; renderArtistList(); }
-      if(tab==='albums'){ tabAlbums.classList.add('active'); sectionTitle.textContent='앨범'; renderAlbumList(); }
-      if(tab==='playlist'){ tabPlaylist.classList.add('active'); sectionTitle.textContent='플레이리스트'; renderSongList(playlist, true); }
-      currentTab = tab;
-    }
+function parseLRC(txt) {
+  return txt.split(/\r?\n/).map(line=>{
+    const match = line.match(/\[(\d{2}):(\d{2})(?:\.(\d{1,3}))?\](.*)/);
+    if(!match) return null;
+    const m = parseInt(match[1]), s = parseInt(match[2]), ms = parseInt(match[3]||0);
+    const time = m*60 + s + ms/1000;
+    return { time, text: match[4].trim() };
+  }).filter(Boolean);
+}
 
-    // ===== 리스트 렌더 =====
-    function renderSongList(list, isPlaylist=false){
-      currentList = list || [];
-      let html = '<div class="card-grid">';
-      currentList.forEach((song, idx)=>{
-        html += `
-          <div class="card" onclick="showSongDetail(${idx}, ${isPlaylist})">
-            <a class="thumb">
-              <img src="${song.cover}" alt="cover">
-              <div class="hover-play">
-                <div class="play-circle" onclick="event.stopPropagation(); playFromDetail(${isPlaylist}, ${idx});">▶</div>
-              </div>
-            </a>
-            <div class="card-title">${song.title || '(제목없음)'}</div>
-            <div class="card-sub">${
-  Array.isArray(song.artist) ? song.artist.join(", ") : (song.artist || "")
-}</div>
-          </div>`;
-      });
-      html += '</div>';
-      contentArea.innerHTML = html;
-    }
+function buildLyrics() {
+  const lyricsDiv = document.getElementById("lyrics");
+  lyricsDiv.innerHTML = lrcLines.map((l,i)=>`<div class="lyric-line" data-idx="${i}">${l.text}</div>`).join("");
+}
 
-    function renderArtistList(){
-      let html = '<div class="card-grid">';
-      Object.keys(artists).forEach(name=>{
-        const a=artists[name];
-        html += `
-          <div class="card" onclick="showArtist('${name}')">
-            <a class="thumb">
-              <img src="${a.image || 'data/program/img/artist-main.png'}" alt="artist">
-              <div class="hover-play" style="pointer-events:none;"></div>
-            </a>
-            <div class="card-title">${a.name}</div>
-            <div class="card-sub">아티스트</div>
-          </div>`;
-      });
-      html += '</div>';
-      contentArea.innerHTML = html;
-    }
-
-    function renderAlbumList(){
-      let html = '<div class="card-grid">';
-      Object.keys(albums).forEach(name=>{
-        const a=albums[name];
-        html += `
-          <div class="card" onclick="showAlbum('${name}')">
-            <a class="thumb">
-              <img src="${a.image || 'data/program/img/album-main.png'}" alt="album">
-              <div class="hover-play" style="pointer-events:none;"></div>
-            </a>
-            <div class="card-title">${a.name}</div>
-            <div class="card-sub">앨범</div>
-          </div>`;
-      });
-      html += '</div>';
-      contentArea.innerHTML = html;
-    }
-
-    // 상세 화면(간단히 카드 목록 유지)
-    window.showSongDetail = function(idx, isPlaylist=false){
-  playFromDetail(isPlaylist, idx);
-};
-
-window.showArtist = function(artistName){
-  const list = songs.filter(s =>
-    Array.isArray(s.artist)
-      ? s.artist.includes(artistName)
-      : s.artist === artistName
-  );
-  renderSongList(list);
-};
-
-window.showAlbum = function(albumName){
-  const list = songs.filter(s => s.album === albumName);
-  renderSongList(list);
-};
-
-window.playFromDetail = function(isPlaylist, idx){
-  const list = isPlaylist ? playlist : currentList;
-  if (!list || !list[idx]) return;
-  selectSong(list[idx], list);
-};
-    // ===== 검색 =====
-    searchInput.addEventListener('input', () => {
-      const term = searchInput.value.trim().toLowerCase();
-      if(currentTab==='songs'){
-        const filtered = songs.filter(s =>
-          (s.title||'').toLowerCase().includes(term) ||
-          (s.artist||'').toLowerCase().includes(term) ||
-          (s.album||'').toLowerCase().includes(term)
-        );
-        renderSongList(filtered);
-      } else if (currentTab==='artists'){
-        const filtered = Object.keys(artists).filter(n =>
-          n.toLowerCase().includes(term) ||
-          (artists[n].info||'').toLowerCase().includes(term)
-        );
-        let html='<div class="card-grid">';
-        filtered.forEach(n=>{
-          const a=artists[n];
-          html += `
-            <div class="card" onclick="showArtist('${n}')">
-              <a class="thumb"><img src="${a.image || 'data/program/img/artist-main.png'}"><div class="hover-play" style="pointer-events:none;"></div></a>
-              <div class="card-title">${a.name}</div>
-              <div class="card-sub">아티스트</div>
-            </div>`;
-        });
-        html+='</div>'; contentArea.innerHTML=html;
-      } else if (currentTab==='albums'){
-        const filtered = Object.keys(albums).filter(n =>
-          n.toLowerCase().includes(term) ||
-          (albums[n].info||'').toLowerCase().includes(term)
-        );
-        let html='<div class="card-grid">';
-        filtered.forEach(n=>{
-          const a=albums[n];
-          html += `
-            <div class="card" onclick="showAlbum('${n}')">
-              <a class="thumb"><img src="${a.image || 'data/program/img/album-main.png'}"><div class="hover-play" style="pointer-events:none;"></div></a>
-              <div class="card-title">${a.name}</div>
-              <div class="card-sub">앨범</div>
-            </div>`;
-        });
-        html+='</div>'; contentArea.innerHTML=html;
-      } else if (currentTab==='playlist'){
-        const filtered = playlist.filter(s =>
-          (s.title||'').toLowerCase().includes(term) ||
-          (s.artist||'').toLowerCase().includes(term) ||
-          (s.album||'').toLowerCase().includes(term)
-        );
-        renderSongList(filtered, true);
-      }
-    });
-
-    // ===== 재생 로직 =====
-    function selectSong(song, list){
-      currentSong = song;
-      currentList = list || songs;
-      lastPlayedIndex = currentList.indexOf(song) || 0;
-
-      coverImg.src = song.cover;
-      musicTitle.textContent = song.title || '(제목없음)';
-      musicArtist.textContent = Array.isArray(song.artist)
-  ? song.artist.join(", ")
-  : (song.artist || "");
-      player.src = URL.createObjectURL(song.file);
-      if (song.instrument) {
-        instrumentPlayer.src = URL.createObjectURL(song.instrument);
-      } else {
-        instrumentOn = false;
-        instrumentalToggle.textContent = 'Instrumental: OFF';
-      }
-
-// 가사 준비
-lrcLines = [];
-console.log("selectSong lrc=", song.lrc);
-if (song.lrc) {
-  if (typeof song.lrc.text === "function") {
-    // File 객체에서 직접 텍스트 추출
-    song.lrc.text().then(txt => {
-      lrcLines = parseLRC(txt);
-      buildLyricsView();
-    });
-  } else {
-    // 혹시 string/path일 경우 fetch
-    fetch(song.lrc)
-      .then(res => res.text())
-      .then(txt => {
-        lrcLines = parseLRC(txt);
-        buildLyricsView();
-      });
+function syncLyrics(curTime) {
+  let idx = -1;
+  for (let i=0; i<lrcLines.length; i++) {
+    const n = lrcLines[i], next = lrcLines[i+1];
+    if (curTime >= n.time && (!next || curTime < next.time)) { idx = i; break; }
   }
-} else if (song.txt) {
-  song.txt.text().then(txt => {
-    buildLyricsView(
-      `<pre style="white-space:pre-wrap;line-height:1.6">${escapeHtml(txt)}</pre>`
-    );
-  });
-} else {
-  buildLyricsView(
-    `<div class="lyrics-empty">해당 곡은 가사를 지원하지 않습니다.</div>`
-  );
+  document.querySelectorAll(".lyric-line").forEach(n=>n.classList.remove("active"));
+  if (idx>=0) {
+    const el = document.querySelector(`.lyric-line[data-idx="${idx}"]`);
+    if (el) el.classList.add("active");
+    el?.scrollIntoView({behavior:'smooth', block:'center'});
+  }
 }
 
-startPlaybackFrom(0);
-saveLastPlayed();
-}   // ← ★★★ 이게 빠져있었음!!!
-    // 현재 모드에 맞춰 특정 시점부터 재생
-    function startPlaybackFrom(timeSec){
-      const vol = volumeControl.value;
-      const useInst = instrumentOn && currentSong?.instrument;
-      if(useInst){
-        instrumentPlayer.currentTime = timeSec;
-        instrumentPlayer.volume = vol;
-        instrumentPlayer.play();
-        player.pause();
-      }else{
-        player.currentTime = timeSec;
-        player.volume = vol;
-        player.play();
-        instrumentPlayer.pause();
-      }
-      playBtn.textContent = '⏸';
-    }
+async function loadArtistAlbum(artist, album) {
+  const base = getBase();
 
-    function pauseBoth(){
-      player.pause(); instrumentPlayer.pause();
-      playBtn.textContent = '▶';
-    }
+  // Artist
+  const artistImg = document.getElementById("artistImg");
+  const artistInfo = document.getElementById("artistInfo");
+  try {
+    artistImg.src = `${base}/artist/${artist}/artist.png`;
+    artistInfo.textContent = await fetch(`${base}/artist/${artist}/artist-info.txt`).then(r=>r.text());
+  } catch { artistInfo.textContent = ""; }
 
-    playBtn.addEventListener('click', ()=>{
-      const active = (instrumentOn && currentSong?.instrument) ? instrumentPlayer : player;
-      if(active.paused){ startPlaybackFrom(active.currentTime || 0); }
-      else{ pauseBoth(); }
-    });
-    prevBtn.addEventListener('click', playPrev);
-    nextBtn.addEventListener('click', playNext);
-
-    shuffleBtn.addEventListener('click', ()=>{
-      shuffleMode = !shuffleMode;
-      shuffleBtn.classList.toggle('primary', shuffleMode);
-    });
-    repeatBtn.addEventListener('click', ()=>{
-      if (repeatMode === 'none') repeatMode = 'all';
-      else if (repeatMode === 'all') repeatMode = 'one';
-      else repeatMode = 'none';
-      repeatBtn.textContent = (repeatMode==='none')?'◯':(repeatMode==='all'?'↺':'↺¹');
-      repeatBtn.classList.toggle('primary', repeatMode!=='none');
-    });
-
-    // 볼륨/진행
-    volumeControl.addEventListener('input', ()=>{
-      player.volume = volumeControl.value;
-      instrumentPlayer.volume = volumeControl.value;
-    });
-
-    function getActivePair(){
-      const useInst = instrumentOn && currentSong?.instrument;
-      return { curEl: useInst ? instrumentPlayer : player, otherEl: useInst ? player : instrumentPlayer };
-    }
-
-    player.addEventListener('timeupdate', updateProgress);
-    instrumentPlayer.addEventListener('timeupdate', updateProgress);
-
-    progressContainer.addEventListener('click', (e) => {
-      const percent = e.offsetX / progressContainer.clientWidth;
-      const { curEl, otherEl } = getActivePair();
-      const dur = curEl.duration || 0;
-      const target = percent * dur;
-      curEl.currentTime = target; otherEl.currentTime = target;
-      updateProgress();
-    });
-
-    function updateProgress(){
-      const { curEl } = getActivePair();
-      const cur = curEl.currentTime || 0;
-      const dur = curEl.duration || 0;
-      const percent = dur ? cur / dur * 100 : 0;
-      progress.style.width = percent + '%';
-      currentTimeDisplay.textContent = formatTime(cur);
-      durationDisplay.textContent = formatTime(dur);
-      syncLyrics(cur);
-    }
-    function formatTime(sec){
-      if (isNaN(sec)) return "00:00";
-      const m = Math.floor(sec / 60), s = Math.floor(sec % 60);
-      return `${m<10?'0'+m:m}:${s<10?'0'+s:s}`;
-    }
-
-    player.addEventListener('ended', handleEnded);
-    instrumentPlayer.addEventListener('ended', handleEnded);
-    function handleEnded(){
-      if (repeatMode === 'one') startPlaybackFrom(0);
-      else playNext();
-    }
-    function playPrev(){
-      let idx = lastPlayedIndex;
-      if (shuffleMode) idx = Math.floor(Math.random()*currentList.length);
-      else idx = (idx - 1 + currentList.length) % currentList.length;
-      selectSong(currentList[idx], currentList);
-    }
-    function playNext(){
-      let idx = lastPlayedIndex;
-      if (shuffleMode) idx = Math.floor(Math.random()*currentList.length);
-      else idx = (idx + 1) % currentList.length;
-      selectSong(currentList[idx], currentList);
-    }
-
-    // ===== 플레이리스트 (간단: 현재 탭에서 + 버튼 없이 hover ▶로 재생만, add/remove는 필요 시 확장) =====
-    function loadPlaylist(){
-      const data = localStorage.getItem('ZEROMM_PLAYLIST');
-      if (data){
-        try{
-          const arr = JSON.parse(data);
-          playlist = arr.map(info => songs.find(s => s.title===info.title && s.artist===info.artist)).filter(Boolean);
-        }catch(_){}
-      }
-    }
-    function savePlaylist(){
-      localStorage.setItem('ZEROMM_PLAYLIST', JSON.stringify(playlist.map(s => ({title:s.title, artist:s.artist}))));
-    }
-
-    function saveLastPlayed(){
-      if (!currentSong) return;
-      localStorage.setItem('ZEROMM_LAST', JSON.stringify({title: currentSong.title, artist: currentSong.artist}));
-    }
-    function saveLastOpened(){ localStorage.setItem('ZEROMM_OPENED', '1'); }
-
-    window.addEventListener('DOMContentLoaded', ()=>{ /* 초기 */ });
-
-    // ===== 가사 처리 =====
-    function parseLRC(txt){
-  const lines = txt.split(/\r?\n/);
-  const result = [];
-  // [mm:ss], [mm:ss.xx], [mm:ss.xxx] 모두 지원
-  const timeReg = /\[(\d{2}):(\d{2})(?:\.(\d{1,3}))?\]/;
-  lines.forEach(line=>{
-    const match = line.match(timeReg);
-    if (match){
-      const min = parseInt(match[1]);
-      const sec = parseInt(match[2]);
-      const msec = match[3] ? parseInt(match[3]) : 0;
-      // 자리수에 따라 밀리초 계산 보정
-      const msFactor = match[3] && match[3].length === 3 ? 1000 : 100;
-      const time = min * 60 + sec + msec / msFactor;
-      const text = line.replace(timeReg,'').trim();
-      result.push({time, text});
-    }
-  });
-  return result.sort((a,b)=>a.time-b.time);
+  // Album
+  const albumImg = document.getElementById("albumImg");
+  const albumInfo = document.getElementById("albumInfo");
+  try {
+    albumImg.src = `${base}/album/${album}/album.png`;
+    albumInfo.textContent = await fetch(`${base}/album/${album}/album-info.txt`).then(r=>r.text());
+  } catch { albumInfo.textContent = ""; }
 }
 
-    function buildLyricsView(customHtml){
-      if (customHtml){
-        lyricsBlock.innerHTML = customHtml;
-        return;
-      }
-      if (!lrcLines.length){
-        lyricsBlock.innerHTML = `<div class="lyrics-empty">해당 곡은 가사를 지원하지 않습니다.</div>`;
-        return;
-      }
-      let html = '';
-      lrcLines.forEach((l, i)=>{ html += `<div class="lyrics-line" data-idx="${i}">${escapeHtml(l.text)}</div>`; });
-      lyricsBlock.innerHTML = html;
-    }
+(async function init() {
+  await checkOnline();
+  const status = document.getElementById("status");
+  const songList = document.getElementById("songList");
+  const data = await loadData();
 
-    function syncLyrics(curTime){
-      if (!lrcLines.length) return;
-      let activeIdx = -1;
-      for (let i=0;i<lrcLines.length;i++){
-        const n = lrcLines[i], next = lrcLines[i+1];
-        if (curTime >= n.time && (i===lrcLines.length-1 || curTime < next.time)){ activeIdx = i; break; }
-      }
-      const nodes = lyricsBlock.querySelectorAll('.lyrics-line');
-      nodes.forEach(n => n.classList.remove('active'));
-      if (activeIdx >= 0 && nodes[activeIdx]){
-        const el = nodes[activeIdx];
-        el.classList.add('active');
-        // 자동 스크롤 (가운데 근처로)
-        const container = lyricsScroll;
-        const offset = el.offsetTop - container.clientHeight/2 + el.clientHeight/2;
-        container.scrollTo({ top: Math.max(offset,0), behavior:'smooth' });
-      }
-    }
+  const base = getBase();
+  status.textContent = isOnline ? "🌐 온라인 모드 (GitHub에서 불러옴)" : "💾 오프라인 모드 (로컬에서 불러옴)";
 
-    function escapeHtml(str){
-      return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
-    }
+  data.songs.forEach(name => songList.appendChild(createSongCard(name, base)));
+})();
+</script>
 
-    // ===== 가사 토글 & 오버레이 컨트롤 =====
-    lyricsBtn.addEventListener('click', ()=>{
-      lyricsOverlay.classList.add('show');
-      lyricsOverlay.setAttribute('aria-hidden','false');
-    });
-    lyricsClose.addEventListener('click', ()=>{
-      lyricsOverlay.classList.remove('show');
-      lyricsOverlay.setAttribute('aria-hidden','true');
-    });
-
-    // ===== Instrumental 토글 (오버레이 오른쪽 하단) =====
-    instrumentalToggle.addEventListener('click', ()=>{
-      if (!currentSong) return;
-      const hasInst = !!currentSong.instrument;
-      const active = (instrumentOn && hasInst) ? instrumentPlayer : player;
-      const t = active.currentTime || 0;
-      const wasPlaying = !active.paused;
-
-      instrumentOn = !instrumentOn;
-      instrumentalToggle.textContent = 'Instrumental: ' + (instrumentOn && hasInst ? 'ON' : 'OFF');
-
-      if (instrumentOn && hasInst){
-        player.pause();
-        instrumentPlayer.currentTime = t;
-        if (wasPlaying) instrumentPlayer.play();
-      }else{
-        instrumentPlayer.pause();
-        player.currentTime = t;
-        if (wasPlaying) player.play();
-      }
-      playBtn.textContent = wasPlaying ? '⏸' : '▶';
-      // 가사 싱크는 updateProgress가 계속 처리
-    });
-  </script>
 </body>
 </html>
