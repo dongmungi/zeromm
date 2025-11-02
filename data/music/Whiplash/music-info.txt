@@ -1,0 +1,5 @@
+title: Whiplash
+artist: aespa
+album: Whiplash - The 5th Mini Album
+genre: pop
+duration: 03:03
