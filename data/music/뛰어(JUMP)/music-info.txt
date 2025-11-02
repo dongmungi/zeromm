@@ -1,0 +1,5 @@
+title: 뛰어(JUMP)
+artist: BLACKPINK
+album: 뛰어(JUMP)
+genre: dance
+duration: 02:44
