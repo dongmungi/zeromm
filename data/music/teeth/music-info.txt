@@ -1,0 +1,5 @@
+title: Teeth
+artist: 5 Seconds Of Summer
+album: CALM
+genre: pop
+duration: 02:30
