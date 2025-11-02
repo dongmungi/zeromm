@@ -1,0 +1,5 @@
+title: Your Idol
+artist: Saja Boys, Andrew Choi, Neckwav, Danny Chung, Kevin Woo, samUIL Lee, KPop Demon Hunters Cast
+album: KPop Demon Hunters (Soundtrack from the Netflix Film)
+genre: pop
+duration: 03:11
